@@ -77,16 +77,21 @@ export const useNarrative = () => {
     prevHistoryLen.current = behaviorHistory.length;
 
     if (newPresses > 0) {
-      if (narrativeStep === 1) {
+      const currentStep = Number(narrativeStep);
+      
+      if (currentStep === 1) {
         setNarrativeStep(2);
-      } else if (narrativeStep === 2) {
+      } else if (currentStep === 2) {
         // 只要按了就可以进入下一步，不需要非得长按 3 秒
         setNarrativeStep(3);
-      } else if (narrativeStep === 3) {
+        setNarrativePressCount(1); // 自动算作第三步的第一次按压
+      } else if (currentStep === 3) {
         const newCount = narrativePressCount + newPresses;
-        setNarrativePressCount(newCount);
-        if (newCount >= 3) {
-          setNarrativeStep(4);
+        if (newCount < 3) {
+          setNarrativePressCount(newCount);
+        } else {
+          setNarrativePressCount(3);
+          setTimeout(() => setNarrativeStep(4), 500); // 稍微延迟一下进入第四步
         }
       }
     }

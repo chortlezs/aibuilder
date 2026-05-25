@@ -176,15 +176,12 @@ export const Home = () => {
 
       {/* 叙事文案区 */}
       <div className="absolute top-24 w-full px-8 text-center h-20 flex items-center justify-center">
-        <motion.p
+        <div
           key={String(narrativeStep) + deviceStatus + appPhase}
-          initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-[17px] font-medium text-zinc-700 tracking-tight leading-relaxed"
+          className="text-[17px] font-medium text-zinc-700 tracking-tight leading-relaxed animate-fade-in-up"
         >
           {getNarrativeText()}
-        </motion.p>
+        </div>
       </div>
 
       {/* 角色中心动画区 */}
@@ -226,29 +223,27 @@ export const Home = () => {
 
         {/* 辅助文本提示（如果在舒缓引导的步骤3，展示进度） */}
         <div className="absolute -bottom-8 w-full flex justify-center h-6">
-          <motion.div 
-            animate={{ 
+          <div 
+            className="text-zinc-400 text-sm font-medium tracking-wide transition-all duration-300"
+            style={{ 
               opacity: activeTab === 'guide' && Number(narrativeStep) === 3 ? 1 : 0,
-              y: activeTab === 'guide' && Number(narrativeStep) === 3 ? 0 : 10 
+              transform: `translateY(${activeTab === 'guide' && Number(narrativeStep) === 3 ? 0 : 10}px)`
             }}
-            transition={{ duration: 0.3 }}
-            className="text-zinc-400 text-sm font-medium tracking-wide"
           >
             已按压 {narrativePressCount} / 3 次
-          </motion.div>
+          </div>
         </div>
       </div>
 
       {/* 当前状态小标签 */}
       <div className="mt-14 h-8 flex justify-center w-full">
-        <motion.div
-          animate={{ 
+        <div
+          className="px-4 py-1.5 rounded-full glass-panel text-zinc-500 text-[11px] font-semibold tracking-wide transition-all duration-300"
+          style={{
             opacity: currentBehavior !== 'idle' ? 1 : 0,
-            scale: currentBehavior !== 'idle' ? 1 : 0.8,
+            transform: currentBehavior !== 'idle' ? 'scale(1)' : 'scale(0.8)',
             filter: currentBehavior !== 'idle' ? 'blur(0px)' : 'blur(4px)'
           }}
-          transition={{ duration: 0.3 }}
-          className="px-4 py-1.5 rounded-full glass-panel text-zinc-500 text-[11px] font-semibold tracking-wide"
         >
           检测到: {
             currentBehavior === 'hard_press' ? '重按 (3)' : 
@@ -256,7 +251,7 @@ export const Home = () => {
             '轻按 (1)'
           }
           {currentPressure > 0 && ` (压力: ${Math.round(currentPressure * 100)}%)`}
-        </motion.div>
+        </div>
       </div>
 
       {/* 蓝牙连接控制与调试面板 */}
