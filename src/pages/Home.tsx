@@ -264,24 +264,30 @@ export const Home = () => {
       <div className="absolute bottom-32 w-full px-8 flex flex-col items-center gap-6">
         <button
           onClick={deviceStatus === 'connected' ? disconnect : connect}
-          className={`flex items-center gap-2 px-8 py-3.5 rounded-full text-[15px] font-semibold tracking-tight transition-all duration-300 ${
+          className={`flex items-center justify-center gap-2 w-40 py-3.5 rounded-full text-[15px] font-semibold tracking-tight transition-all duration-300 ${
             deviceStatus === 'connected' 
               ? 'glass-button text-zinc-600' 
               : 'bg-zinc-800 text-white hover:bg-zinc-700 shadow-[0_8px_20px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_24px_rgba(0,0,0,0.18)] hover:-translate-y-0.5'
           }`}
         >
-          {deviceStatus === 'connected' ? (
-            <><BluetoothOff size={18} /> 断开连接</>
-          ) : deviceStatus === 'connecting' ? (
-            <><Settings2 size={18} className="animate-spin" /> 连接中...</>
-          ) : (
-            <><Bluetooth size={18} /> 连接捏捏乐</>
+          {deviceStatus === 'connected' && (
+            <span className="flex items-center gap-2"><BluetoothOff size={18} /> 断开连接</span>
+          )}
+          {deviceStatus === 'connecting' && (
+            <span className="flex items-center gap-2"><Settings2 size={18} className="animate-spin" /> 连接中...</span>
+          )}
+          {deviceStatus === 'disconnected' && (
+            <span className="flex items-center gap-2"><Bluetooth size={18} /> 连接捏捏乐</span>
           )}
         </button>
 
         {/* 调试用：模拟硬件发送数据 */}
-        {deviceStatus === 'disconnected' && (
-          <div className="flex flex-col gap-3 opacity-40 hover:opacity-100 transition-all duration-300 items-center bg-white/50 backdrop-blur-md p-4 rounded-3xl border border-white/60 shadow-sm">
+        <div 
+          className="flex flex-col gap-3 opacity-40 hover:opacity-100 transition-all duration-300 items-center bg-white/50 backdrop-blur-md p-4 rounded-3xl border border-white/60 shadow-sm"
+          style={{ 
+            display: deviceStatus === 'disconnected' ? 'flex' : 'none' 
+          }}
+        >
             <div className="flex gap-2">
               <button 
                 onClick={() => simulateData('hard_press', 0.8)}
@@ -305,8 +311,7 @@ export const Home = () => {
             <div className="text-[10px] text-zinc-400 font-medium">
               点击按钮模拟蓝牙接收 1、2、3 数值
             </div>
-          </div>
-        )}
+        </div>
       </div>
     </motion.div>
   );
