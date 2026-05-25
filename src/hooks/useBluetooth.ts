@@ -150,14 +150,21 @@ export const useBluetooth = () => {
       setDeviceStatus('connected');
     } catch (error: any) {
       console.error('Bluetooth Error:', error);
-      // 捕捉用户取消或其他错误，给出明确提示
+      
+      // 检查错误类型并给出更友好的提示
       if (error.name === 'NotFoundError') {
-        alert('未找到蓝牙设备，或者您取消了配对。');
+        // 用户点击了取消配对，不需要弹窗报错，静默失败即可
+        console.log('用户取消了蓝牙配对');
       } else if (error.name === 'NotSupportedError') {
         alert('当前环境不支持蓝牙，请确保网站使用 HTTPS，或者您在本地 (localhost) 运行。');
+      } else if (error.name === 'NetworkError') {
+        alert('蓝牙连接已断开，请检查设备是否开启。');
+      } else if (error.message && error.message.includes('No services found')) {
+        alert('该设备似乎没有提供可用的蓝牙服务，请确保您连接的是正确的“AI Builder”硬件。');
       } else {
-        alert(`蓝牙连接失败: ${error.message}`);
+        alert(`蓝牙连接失败: ${error.message || '未知错误'}`);
       }
+      
       setDeviceStatus('disconnected');
     }
   }, [setDeviceStatus]);
