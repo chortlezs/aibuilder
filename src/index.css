@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased text-zinc-900;
+    /* iOS 风格字体栈 */
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    background-color: #F5F5F7; /* iOS 偏好的极浅灰底色 */
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)];
+  }
+  
+  .glass-button {
+    @apply bg-white/60 backdrop-blur-md border border-white/50 shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:bg-white/80 transition-all duration-300;
+  }
+}
