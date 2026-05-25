@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAppStore } from '../store/appStore';
 import { useBluetooth } from '../hooks/useBluetooth';
 import { useNarrative } from '../hooks/useNarrative';
@@ -226,43 +226,38 @@ export const Home = () => {
         </motion.div>
 
         {/* 辅助文本提示（如果在舒缓引导的步骤3，展示进度） */}
-        <div className="absolute -bottom-8 w-full flex justify-center">
-          <AnimatePresence mode="wait">
-          {activeTab === 'guide' && Number(narrativeStep) === 3 && (
-            <motion.div 
-              key="press-count"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="text-zinc-400 text-sm font-medium tracking-wide"
-            >
-              已按压 {narrativePressCount} / 3 次
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div className="absolute -bottom-8 w-full flex justify-center h-6">
+          <motion.div 
+            animate={{ 
+              opacity: activeTab === 'guide' && Number(narrativeStep) === 3 ? 1 : 0,
+              y: activeTab === 'guide' && Number(narrativeStep) === 3 ? 0 : 10 
+            }}
+            transition={{ duration: 0.3 }}
+            className="text-zinc-400 text-sm font-medium tracking-wide"
+          >
+            已按压 {narrativePressCount} / 3 次
+          </motion.div>
         </div>
       </div>
 
       {/* 当前状态小标签 */}
       <div className="mt-14 h-8 flex justify-center w-full">
-        <AnimatePresence mode="wait">
-          {currentBehavior !== 'idle' && (
-            <motion.div
-              key="behavior-tag"
-              initial={{ opacity: 0, scale: 0.8, filter: 'blur(4px)' }}
-              animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, scale: 0.8, filter: 'blur(4px)' }}
-              className="px-4 py-1.5 rounded-full glass-panel text-zinc-500 text-[11px] font-semibold tracking-wide"
-            >
-              检测到: {
-                currentBehavior === 'hard_press' ? '重按 (3)' : 
-                currentBehavior === 'normal_press' ? '正常按 (2)' : 
-                '轻按 (1)'
-              }
-              {currentPressure > 0 && ` (压力: ${Math.round(currentPressure * 100)}%)`}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <motion.div
+          animate={{ 
+            opacity: currentBehavior !== 'idle' ? 1 : 0,
+            scale: currentBehavior !== 'idle' ? 1 : 0.8,
+            filter: currentBehavior !== 'idle' ? 'blur(0px)' : 'blur(4px)'
+          }}
+          transition={{ duration: 0.3 }}
+          className="px-4 py-1.5 rounded-full glass-panel text-zinc-500 text-[11px] font-semibold tracking-wide"
+        >
+          检测到: {
+            currentBehavior === 'hard_press' ? '重按 (3)' : 
+            currentBehavior === 'normal_press' ? '正常按 (2)' : 
+            '轻按 (1)'
+          }
+          {currentPressure > 0 && ` (压力: ${Math.round(currentPressure * 100)}%)`}
+        </motion.div>
       </div>
 
       {/* 蓝牙连接控制与调试面板 */}
