@@ -28,19 +28,23 @@ export const useNarrative = () => {
         else if (behavior === 'hard_press') score -= 1; 
       });
 
-      setAppPhase('evaluating');
-      clearBehaviorHistory();
-
-      if (score < 0) {
-        setMindfulnessState('negative');
-      } else {
-        setMindfulnessState('positive');
-      }
-      
-      // 评估表情展示 2.5 秒后，不论结果是积极还是消极，都自动进入舒缓引导
+      // 稍微延迟状态更新，避免和 UI 动画冲突导致渲染崩溃
       setTimeout(() => {
-        setActiveTab('guide');
-      }, 2500);
+        setAppPhase('evaluating');
+        setMindfulnessState(score < 0 ? 'negative' : 'positive');
+        
+        setTimeout(() => {
+          if (score < 0 || true) {
+            setActiveTab('guide');
+            setAppPhase('narrative');
+            setNarrativeStep(1);
+            setNarrativePressCount(0);
+          } else {
+            setAppPhase('monitoring');
+            clearBehaviorHistory();
+          }
+        }, 2500);
+      }, 100);
     }
   }, [appPhase, activeTab, behaviorHistory, clearBehaviorHistory, setAppPhase, setMindfulnessState, setActiveTab]);
 

@@ -149,10 +149,9 @@ export const Home = () => {
   const isNarrative = appPhase === 'narrative';
 
   return (
-    <motion.div 
-      className="relative min-h-full flex flex-col items-center justify-center p-6 overflow-hidden"
-      animate={{ backgroundColor: isNarrative ? '#F2F5F7' : '#F5F5F7' }}
-      transition={{ duration: 1.5 }}
+    <div 
+      className="relative min-h-full flex flex-col items-center justify-center p-6 overflow-hidden transition-colors duration-1000"
+      style={{ backgroundColor: isNarrative ? '#F2F5F7' : '#F5F5F7' }}
     >
       <audio ref={audioRef} className="hidden" />
       {/* 顶部状态切换开关 */}
@@ -313,6 +312,6 @@ export const Home = () => {
             </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
