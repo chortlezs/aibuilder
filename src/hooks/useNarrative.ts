@@ -75,6 +75,9 @@ export const useNarrative = () => {
     if (newPresses > 0) {
       if (narrativeStep === 1) {
         setNarrativeStep(2);
+      } else if (narrativeStep === 2) {
+        // 只要按了就可以进入下一步，不需要非得长按 3 秒
+        setNarrativeStep(3);
       } else if (narrativeStep === 3) {
         const newCount = narrativePressCount + newPresses;
         setNarrativePressCount(newCount);
@@ -85,26 +88,11 @@ export const useNarrative = () => {
     }
   }, [activeTab, narrativeStep, behaviorHistory.length, narrativePressCount, setNarrativeStep, setNarrativePressCount]);
 
-  // 4. 叙事阶段：监听压力 (按住3秒、缓缓松开)
-  const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // 4. 叙事阶段：监听压力 (缓缓松开)
   useEffect(() => {
     if (activeTab !== 'guide') return;
 
-    if (narrativeStep === 2) {
-      if (currentPressure > 0) {
-        if (!holdTimerRef.current) {
-          holdTimerRef.current = setTimeout(() => {
-            setNarrativeStep(3);
-            holdTimerRef.current = null;
-          }, 3000);
-        }
-      } else {
-        if (holdTimerRef.current) {
-          clearTimeout(holdTimerRef.current);
-          holdTimerRef.current = null;
-        }
-      }
-    } else if (narrativeStep === 4) {
+    if (narrativeStep === 4) {
       if (currentPressure === 0) {
         // 松开后稍微延迟进入结束状态，显得自然
         const t = setTimeout(() => {
@@ -116,13 +104,6 @@ export const useNarrative = () => {
         return () => clearTimeout(t);
       }
     }
-
-    return () => {
-      if (holdTimerRef.current) {
-        clearTimeout(holdTimerRef.current);
-        holdTimerRef.current = null;
-      }
-    };
   }, [activeTab, narrativeStep, currentPressure, setNarrativeStep]);
 
   const finishSession = (success: boolean) => {

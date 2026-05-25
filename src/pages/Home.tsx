@@ -31,9 +31,8 @@ export const Home = () => {
   useEffect(() => {
     if (activeTab === 'guide' && narrativeStep >= 1 && narrativeStep <= 4) {
       if (audioRef.current) {
-        // TODO: 替换为实际的音频文件路径，例如 `/audio/${currentRole?.id}_step${narrativeStep}.mp3`
-        // audioRef.current.src = `/audio/step${narrativeStep}.mp3`;
-        // audioRef.current.play().catch(err => console.log('等待用户交互后才能播放音频', err));
+        audioRef.current.src = `/audio/step${narrativeStep}.mp3`;
+        audioRef.current.play().catch(err => console.log('等待用户交互后才能播放音频', err));
         console.log(`[Audio Placeholder] Playing audio for step ${narrativeStep}`);
       }
     }
@@ -266,6 +265,7 @@ export const Home = () => {
 
       {/* 蓝牙连接控制与调试面板 */}
       <div className="absolute bottom-32 w-full px-8 flex flex-col items-center gap-6">
+        <audio ref={audioRef} className="hidden" />
         <button
           onClick={deviceStatus === 'connected' ? disconnect : connect}
           className={`flex items-center gap-2 px-8 py-3.5 rounded-full text-[15px] font-semibold tracking-tight transition-all duration-300 ${
@@ -306,16 +306,6 @@ export const Home = () => {
                 模拟轻按(1)
               </button>
             </div>
-            {activeTab === 'guide' && (
-              <div className="flex gap-2 mt-1">
-                <button 
-                  onClick={() => simulateData('normal_press', 0.6, 3100)}
-                  className="text-[11px] font-medium px-3 py-1.5 bg-purple-50/80 text-purple-600 rounded-xl hover:bg-purple-100 transition-colors w-full"
-                >
-                  模拟长按({">"}3秒)
-                </button>
-              </div>
-            )}
             <div className="text-[10px] text-zinc-400 font-medium">
               点击按钮模拟蓝牙接收 1、2、3 数值
             </div>
