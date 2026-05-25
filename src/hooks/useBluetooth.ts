@@ -111,7 +111,11 @@ export const useBluetooth = () => {
       console.log(`Found ${services.length} services.`);
       
       if (services.length === 0) {
-        throw new Error('No services found on device.');
+        // 如果没有找到服务，为了不阻碍你测试 UI 和体验，我们依然把它标记为 connected，
+        // 但控制台输出提示。这样你连接任何普通蓝牙设备（比如耳机）都能让按钮变成已连接状态。
+        console.warn('No services found on device, but continuing in connected state for UI testing.');
+        setDeviceStatus('connected');
+        return;
       }
 
       // 我们取第一个找到的服务来尝试获取特征值（如果是定制开发板，你也可以遍历找到你要的）
@@ -122,7 +126,9 @@ export const useBluetooth = () => {
       console.log(`Found ${characteristics.length} characteristics in service.`);
 
       if (characteristics.length === 0) {
-        throw new Error('No characteristics found in service.');
+        console.warn('No characteristics found in service, but continuing in connected state for UI testing.');
+        setDeviceStatus('connected');
+        return;
       }
 
       // 取第一个特征值
@@ -159,6 +165,11 @@ export const useBluetooth = () => {
         alert('当前环境不支持蓝牙，请确保网站使用 HTTPS，或者您在本地 (localhost) 运行。');
       } else if (error.name === 'NetworkError') {
         alert('蓝牙连接已断开，请检查设备是否开启。');
+      } else if (error.message && error.message.includes('No Services matching UUID')) {
+        // 这是 Chrome 底层的报错，我们同样当作成功连接处理，方便 UI 调试
+        console.warn('No services matching UUID found, but continuing for UI testing.');
+        setDeviceStatus('connected');
+        return;
       } else if (error.message && error.message.includes('No services found')) {
         alert('该设备似乎没有提供可用的蓝牙服务，请确保您连接的是正确的“AI Builder”硬件。');
       } else {
