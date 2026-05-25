@@ -154,6 +154,7 @@ export const Home = () => {
       animate={{ backgroundColor: isNarrative ? '#F2F5F7' : '#F5F5F7' }}
       transition={{ duration: 1.5 }}
     >
+      <audio ref={audioRef} className="hidden" />
       {/* 顶部状态切换开关 */}
       <div className="absolute top-10 glass-panel p-1 rounded-full flex gap-1 z-10 shadow-sm">
         <button
@@ -228,25 +229,29 @@ export const Home = () => {
         </motion.div>
 
         {/* 辅助文本提示（如果在舒缓引导的步骤3，展示进度） */}
-        <AnimatePresence>
-          {activeTab === 'guide' && Number(narrativeStep) === 3 && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute -bottom-8 text-zinc-400 text-sm font-medium tracking-wide"
-            >
-              已按压 {narrativePressCount} / 3 次
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div className="absolute -bottom-8 w-full flex justify-center">
+          <AnimatePresence mode="wait">
+            {activeTab === 'guide' && Number(narrativeStep) === 3 ? (
+              <motion.div 
+                key="press-count"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="text-zinc-400 text-sm font-medium tracking-wide"
+              >
+                已按压 {narrativePressCount} / 3 次
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* 当前状态小标签 */}
-      <div className="mt-14 h-8">
-        <AnimatePresence>
-          {currentBehavior !== 'idle' && (
+      <div className="mt-14 h-8 flex justify-center w-full">
+        <AnimatePresence mode="wait">
+          {currentBehavior !== 'idle' ? (
             <motion.div
+              key="behavior-tag"
               initial={{ opacity: 0, scale: 0.8, filter: 'blur(4px)' }}
               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
               exit={{ opacity: 0, scale: 0.8, filter: 'blur(4px)' }}
@@ -259,13 +264,12 @@ export const Home = () => {
               }
               {currentPressure > 0 && ` (压力: ${Math.round(currentPressure * 100)}%)`}
             </motion.div>
-          )}
+          ) : null}
         </AnimatePresence>
       </div>
 
       {/* 蓝牙连接控制与调试面板 */}
       <div className="absolute bottom-32 w-full px-8 flex flex-col items-center gap-6">
-        <audio ref={audioRef} className="hidden" />
         <button
           onClick={deviceStatus === 'connected' ? disconnect : connect}
           className={`flex items-center gap-2 px-8 py-3.5 rounded-full text-[15px] font-semibold tracking-tight transition-all duration-300 ${
