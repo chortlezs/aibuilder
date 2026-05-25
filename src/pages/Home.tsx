@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 import { useAppStore } from '../store/appStore';
 import { useBluetooth } from '../hooks/useBluetooth';
 import { useNarrative } from '../hooks/useNarrative';
@@ -46,53 +45,6 @@ export const Home = () => {
   }, [currentRole, navigate]);
 
   if (!currentRole) return null;
-
-  // 控制圆环扩散动画
-  const getRingAnimation = () => {
-    if (activeTab === 'guide') {
-      const step = Number(narrativeStep);
-      if (step === 2) {
-        // 吸气/按压：圆环缩小
-        return { scale: 0.8, opacity: 0.8, borderWidth: '4px' } as any;
-      }
-      if (step === 4) {
-        // 呼气/松开：圆环扩散
-        return { scale: 1.5, opacity: 0, borderWidth: '1px' } as any;
-      }
-      // 默认微微呼吸
-      return { 
-        scale: [1, 1.1, 1],
-        opacity: [0.3, 0.6, 0.3],
-        transition: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-      } as any;
-    }
-    return { scale: 1, opacity: 0 } as any;
-  };
-  // 动效配置
-  const getBlobAnimation = () => {
-    // 监测期和评估期
-    if (appPhase === 'evaluating') {
-      if (mindfulnessState === 'negative') {
-        // 消极：快速抖动
-        return { 
-          x: [-5, 5, -5, 5, 0],
-          transition: { duration: 0.4, repeat: 5 }
-        } as any;
-      } else {
-        // 积极：轻快弹跳
-        return {
-          y: [-10, 0, -10, 0],
-          transition: { duration: 0.6, repeat: 2 }
-        } as any;
-      }
-    }
-
-    // 默认微微呼吸
-    return {
-      scale: [1, 1.02, 1],
-      transition: { duration: 4, repeat: Infinity, ease: "easeInOut" as const }
-    } as any;
-  };
 
   // 获取表情
   const getFaceExpression = () => {
@@ -144,7 +96,7 @@ export const Home = () => {
     if (deviceStatus === 'connected') return "我在陪着你，随时可以捏捏我。";
     return "点击下方按钮连接捏捏乐";
   };
-
+  
   // 动态背景颜色，在叙事期稍微压暗，增强沉浸感，整体更明亮治愈
   const isNarrative = appPhase === 'narrative';
 
@@ -187,9 +139,14 @@ export const Home = () => {
       {/* 角色中心动画区 */}
       <div className="relative w-64 h-64 flex items-center justify-center mt-10">
         {/* 呼吸光晕背景 (仅在引导时显示) */}
-        <motion.div
-          animate={getRingAnimation()}
-          className="absolute w-56 h-56 rounded-[40%] border-zinc-200"
+        <div
+          className={`absolute w-56 h-56 rounded-[40%] border-zinc-200 transition-all duration-1000 ${
+            activeTab === 'guide' ? (
+              Number(narrativeStep) === 2 ? 'scale-80 opacity-80 border-4' :
+              Number(narrativeStep) === 4 ? 'scale-150 opacity-0 border' :
+              'animate-breath-ring border'
+            ) : 'scale-100 opacity-0 border'
+          }`}
           style={{ 
             borderColor: currentRole.color,
             borderRadius: '45% 55% 40% 60% / 55% 45% 60% 40%'
@@ -197,9 +154,12 @@ export const Home = () => {
         />
 
         {/* 角色本体 (Blob) */}
-          <motion.div
-            animate={getBlobAnimation()}
-            className="relative w-44 h-44 rounded-[40%] flex items-center justify-center shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] backdrop-blur-sm"
+          <div
+            className={`relative w-44 h-44 rounded-[40%] flex items-center justify-center shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-500 ${
+              appPhase === 'evaluating' ? (
+                mindfulnessState === 'negative' ? 'animate-shake' : 'animate-bounce-slight'
+              ) : 'animate-breath-blob'
+            }`}
             style={{ 
               background: currentRole.gradient,
               borderRadius: '45% 55% 40% 60% / 55% 45% 60% 40%',
@@ -210,16 +170,14 @@ export const Home = () => {
           <div className="absolute top-4 left-6 w-16 h-12 bg-white/30 rounded-full blur-[8px] transform -rotate-12 mix-blend-overlay" />
 
           {/* 角色表情 */}
-          <motion.div 
-            className={`text-3xl font-semibold tracking-widest opacity-80 ${
+          <div 
+            className={`text-3xl font-semibold tracking-widest opacity-80 animate-pulse-slow ${
               currentRole.id === 'role_white' ? 'text-zinc-600' : 'text-white'
             }`}
-            animate={{ opacity: [0.7, 0.95, 0.7] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           >
             {getFaceExpression()}
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* 辅助文本提示（如果在舒缓引导的步骤3，展示进度） */}
         <div className="absolute -bottom-8 w-full flex justify-center h-6">
