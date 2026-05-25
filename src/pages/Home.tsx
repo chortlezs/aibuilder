@@ -177,18 +177,15 @@ export const Home = () => {
 
       {/* 叙事文案区 */}
       <div className="absolute top-24 w-full px-8 text-center h-20 flex items-center justify-center">
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={String(narrativeStep) + deviceStatus}
-            initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-[17px] font-medium text-zinc-700 tracking-tight leading-relaxed"
-          >
-            {getNarrativeText()}
-          </motion.p>
-        </AnimatePresence>
+        <motion.p
+          key={String(narrativeStep) + deviceStatus + appPhase}
+          initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="text-[17px] font-medium text-zinc-700 tracking-tight leading-relaxed"
+        >
+          {getNarrativeText()}
+        </motion.p>
       </div>
 
       {/* 角色中心动画区 */}
@@ -231,25 +228,25 @@ export const Home = () => {
         {/* 辅助文本提示（如果在舒缓引导的步骤3，展示进度） */}
         <div className="absolute -bottom-8 w-full flex justify-center">
           <AnimatePresence mode="wait">
-            {activeTab === 'guide' && Number(narrativeStep) === 3 ? (
-              <motion.div 
-                key="press-count"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="text-zinc-400 text-sm font-medium tracking-wide"
-              >
-                已按压 {narrativePressCount} / 3 次
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
+          {activeTab === 'guide' && Number(narrativeStep) === 3 && (
+            <motion.div 
+              key="press-count"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="text-zinc-400 text-sm font-medium tracking-wide"
+            >
+              已按压 {narrativePressCount} / 3 次
+            </motion.div>
+          )}
+        </AnimatePresence>
         </div>
       </div>
 
       {/* 当前状态小标签 */}
       <div className="mt-14 h-8 flex justify-center w-full">
         <AnimatePresence mode="wait">
-          {currentBehavior !== 'idle' ? (
+          {currentBehavior !== 'idle' && (
             <motion.div
               key="behavior-tag"
               initial={{ opacity: 0, scale: 0.8, filter: 'blur(4px)' }}
@@ -264,7 +261,7 @@ export const Home = () => {
               }
               {currentPressure > 0 && ` (压力: ${Math.round(currentPressure * 100)}%)`}
             </motion.div>
-          ) : null}
+          )}
         </AnimatePresence>
       </div>
 
