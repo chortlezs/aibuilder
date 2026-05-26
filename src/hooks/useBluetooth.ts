@@ -76,10 +76,9 @@ declare global {
   }
 }
 
-// 模拟 ESP32 的服务 UUID，实际开发中需要替换为真实 UUID
-// 你可以暂时注释掉写死的 UUID，改为动态获取
-// const ESP32_SERVICE_UUID = '0000ffe0-0000-1000-8000-00805f9b34fb';
-// const ESP32_CHARACTERISTIC_UUID = '0000ffe1-0000-1000-8000-00805f9b34fb';
+const ESP32_DEVICE_NAME = 'FSR_WAVE_C6';
+const ESP32_SERVICE_UUID = '7b9a0001-9f46-4bdf-a4d8-8a5c2c9f0001';
+const ESP32_LEVEL_CHARACTERISTIC_UUID = '7b9a0002-9f46-4bdf-a4d8-8a5c2c9f0001';
 
 export const useBluetooth = () => {
   const { setDeviceStatus, setCurrentBehavior, setMindfulnessState, setCurrentPressure } = useAppStore();
@@ -96,7 +95,11 @@ export const useBluetooth = () => {
       console.log('Requesting Bluetooth Device...');
       
       const device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true
+        filters: [
+          { name: ESP32_DEVICE_NAME },
+          { services: [ESP32_SERVICE_UUID] },
+        ],
+        optionalServices: [ESP32_SERVICE_UUID],
       });
 
       deviceRef.current = device;
@@ -105,34 +108,11 @@ export const useBluetooth = () => {
       const server = await device.gatt?.connect();
       if (!server) throw new Error('Cannot connect to GATT Server');
 
-      console.log('Getting Services...');
-      // 获取设备上的所有服务
-      const services = await server.getPrimaryServices();
-      console.log(`Found ${services.length} services.`);
-      
-      if (services.length === 0) {
-        // 如果没有找到服务，为了不阻碍你测试 UI 和体验，我们依然把它标记为 connected，
-        // 但控制台输出提示。这样你连接任何普通蓝牙设备（比如耳机）都能让按钮变成已连接状态。
-        console.warn('No services found on device, but continuing in connected state for UI testing.');
-        setDeviceStatus('connected');
-        return;
-      }
-
-      // 我们取第一个找到的服务来尝试获取特征值（如果是定制开发板，你也可以遍历找到你要的）
-      const service = services[0];
+      console.log('Getting ESP32 pressure service...');
+      const service = await server.getPrimaryService(ESP32_SERVICE_UUID);
       console.log(`Using Service: ${service.uuid}`);
 
-      const characteristics = await service.getCharacteristics();
-      console.log(`Found ${characteristics.length} characteristics in service.`);
-
-      if (characteristics.length === 0) {
-        console.warn('No characteristics found in service, but continuing in connected state for UI testing.');
-        setDeviceStatus('connected');
-        return;
-      }
-
-      // 取第一个特征值
-      const characteristic = characteristics[0];
+      const characteristic = await service.getCharacteristic(ESP32_LEVEL_CHARACTERISTIC_UUID);
       console.log(`Using Characteristic: ${characteristic.uuid}`);
 
       console.log('Starting Notifications...');
@@ -166,10 +146,7 @@ export const useBluetooth = () => {
       } else if (error.name === 'NetworkError') {
         alert('蓝牙连接已断开，请检查设备是否开启。');
       } else if (error.message && error.message.includes('No Services matching UUID')) {
-        // 这是 Chrome 底层的报错，我们同样当作成功连接处理，方便 UI 调试
-        console.warn('No services matching UUID found, but continuing for UI testing.');
-        setDeviceStatus('connected');
-        return;
+        alert(`没有在设备上找到 ESP32 压力服务 (${ESP32_SERVICE_UUID})，请确认连接的是 ${ESP32_DEVICE_NAME} 且固件已烧录最新版本。`);
       } else if (error.message && error.message.includes('No services found')) {
         alert('该设备似乎没有提供可用的蓝牙服务，请确保您连接的是正确的“AI Builder”硬件。');
       } else {
@@ -211,6 +188,9 @@ export const useBluetooth = () => {
       } else if (strValue === '3') {
         behavior = 'hard_press';
         pressureVal = 0.9;
+      } else if (strValue === '0') {
+        behavior = 'idle';
+        pressureVal = 0;
       } else {
         // 兼容原有的 JSON 格式
         try {
@@ -228,10 +208,12 @@ export const useBluetooth = () => {
       
       setCurrentPressure(pressureVal);
       
-      // 只有在监测期或叙事期（用户按压跟随引导时）才记录动作
-      if (appPhase !== 'evaluating' && behavior !== 'idle') {
+      // 评估期不接收新动作；历史里只记录有效按压，不记录松手 idle。
+      if (appPhase !== 'evaluating') {
         setCurrentBehavior(behavior);
-        addBehaviorToHistory(behavior);
+        if (behavior !== 'idle') {
+          addBehaviorToHistory(behavior);
+        }
       }
     } catch (e) {
       console.error("BLE Parse Error", e);
