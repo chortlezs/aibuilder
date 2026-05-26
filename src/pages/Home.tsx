@@ -25,6 +25,17 @@ export const Home = () => {
   useNarrative(); // Activate narrative hook
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const bgmRef = useRef<HTMLAudioElement>(null);
+
+  // 控制背景音乐
+  useEffect(() => {
+    if (activeTab === 'guide') {
+      bgmRef.current?.play().catch(err => console.log('BGM播放失败(需用户交互)', err));
+    } else {
+      bgmRef.current?.pause();
+      if (bgmRef.current) bgmRef.current.currentTime = 0;
+    }
+  }, [activeTab]);
 
   // 监听 guideStep 变化播放对应的音频
   useEffect(() => {
@@ -77,7 +88,7 @@ export const Home = () => {
         case 1: return "第一步：请轻轻按一下";
         case 2: return "第二步：请按住我 3 秒钟";
         case 3: return `第三步：请连续按三下 (${narrativePressCount}/3)`;
-        case 4: return "第四步：请缓缓松开...";
+        case 4: return "第四步：慢慢放开，让云飘走";
         case 5: return "感受到了吗？一次完整的呼吸完成了。";
         default: return "准备中...";
       }
@@ -106,6 +117,7 @@ export const Home = () => {
       style={{ backgroundColor: isNarrative ? '#F2F5F7' : '#F5F5F7' }}
     >
       <audio ref={audioRef} className="hidden" />
+      <audio ref={bgmRef} src="/audio/bgm-soothing.mp3" loop className="hidden" />
       {/* 顶部状态切换开关 */}
       <div className="absolute top-10 glass-panel p-1 rounded-full flex gap-1 z-10 shadow-sm">
         <button
@@ -127,13 +139,21 @@ export const Home = () => {
       </div>
 
       {/* 叙事文案区 */}
-      <div className="absolute top-24 w-full px-8 text-center h-20 flex items-center justify-center">
+      <div className="absolute top-24 w-full px-8 text-center h-28 flex flex-col items-center justify-center">
         <div
           key={String(narrativeStep) + deviceStatus + appPhase}
           className="text-[17px] font-medium text-zinc-700 tracking-tight leading-relaxed animate-fade-in-up"
         >
           {getNarrativeText()}
         </div>
+        {appPhase === 'evaluating' && (
+          <button
+            onClick={() => setActiveTab('guide')}
+            className="mt-4 px-6 py-2 bg-zinc-800 text-white text-[14px] font-medium rounded-full shadow hover:bg-zinc-700 hover:shadow-lg transition-all animate-fade-in-up"
+          >
+            开始舒缓引导
+          </button>
+        )}
       </div>
 
       {/* 角色中心动画区 */}

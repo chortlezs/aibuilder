@@ -32,18 +32,6 @@ export const useNarrative = () => {
       setTimeout(() => {
         setAppPhase('evaluating');
         setMindfulnessState(score < 0 ? 'negative' : 'positive');
-        
-        setTimeout(() => {
-          if (score < 0 || true) {
-            setActiveTab('guide');
-            setAppPhase('narrative');
-            setNarrativeStep(1);
-            setNarrativePressCount(0);
-          } else {
-            setAppPhase('monitoring');
-            clearBehaviorHistory();
-          }
-        }, 2500);
       }, 100);
     }
   }, [appPhase, activeTab, behaviorHistory, clearBehaviorHistory, setAppPhase, setMindfulnessState, setActiveTab]);
