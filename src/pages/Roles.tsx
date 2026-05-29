@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useAppStore, Role } from '../store/appStore';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ROLES: Role[] = [
   {
@@ -8,96 +10,104 @@ const ROLES: Role[] = [
     name: '海盐蓝',
     color: '#89C4F4',
     gradient: 'linear-gradient(135deg, #A1C9F1 0%, #89C4F4 100%)',
-    description: '像夏日晴空一样清澈，能吹散所有的烦躁与阴霾。',
+    description: '',
   },
   {
     id: 'role_pink',
     name: '樱花粉',
     color: '#FFBFA9',
     gradient: 'linear-gradient(135deg, #FFD3C4 0%, #FFBFA9 100%)',
-    description: '温柔又治愈，像一个带着花香的柔软拥抱。',
+    description: '',
   },
   {
     id: 'role_white',
     name: '云朵白',
     color: '#F9FAFB',
     gradient: 'linear-gradient(135deg, #FFFFFF 0%, #F4F4F5 100%)',
-    description: '纯净包容，像天空中软绵绵的云，接住你所有的情绪。',
+    description: '',
   }
 ];
 
 export const Roles = () => {
   const { currentRole, setCurrentRole } = useAppStore();
   const navigate = useNavigate();
+  
+  // Find initial index if role is already selected
+  const initialIndex = ROLES.findIndex(r => r.id === currentRole?.id);
+  const [activeIndex, setActiveIndex] = useState(initialIndex >= 0 ? initialIndex : 0);
 
   const handleSelect = (role: Role) => {
     setCurrentRole(role);
     setTimeout(() => {
       navigate('/');
-    }, 300);
+    }, 200);
   };
 
-  return (
-    <div className="min-h-full p-8 pt-16 flex flex-col items-center">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-14"
-      >
-        <h1 className="text-3xl font-semibold text-zinc-800 mb-3 tracking-tight">选择陪伴者</h1>
-        <p className="text-sm text-zinc-500 max-w-[240px] mx-auto leading-relaxed">
-          选一个让你感到放松的伙伴
-        </p>
-      </motion.div>
+  const nextRole = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveIndex((prev) => (prev + 1) % ROLES.length);
+  };
 
-      <div className="w-full max-w-sm flex flex-col gap-5">
-        {ROLES.map((role, idx) => {
-          const isSelected = currentRole?.id === role.id;
-          const isWhite = role.id === 'role_white';
-          
-          return (
-            <motion.div
-              key={role.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1, type: 'spring', stiffness: 300, damping: 25 }}
-              onClick={() => handleSelect(role)}
-              className={`relative overflow-hidden rounded-[2rem] p-6 cursor-pointer transition-all duration-400 ease-out ${
-                isSelected 
-                  ? 'scale-[1.02] shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] ring-1 ring-black/5' 
-                  : 'hover:scale-[1.01] glass-panel'
-              }`}
+  const prevRole = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveIndex((prev) => (prev - 1 + ROLES.length) % ROLES.length);
+  };
+
+  const activeRole = ROLES[activeIndex];
+  const isWhite = activeRole.id === 'role_white';
+
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden bg-[#FAFAFA]">
+      {/* Title */}
+      <div className="absolute top-8 text-center z-20">
+        <h1 className="text-[16px] font-semibold text-zinc-700 tracking-widest">选择伙伴</h1>
+      </div>
+
+      {/* Navigation Arrows */}
+      <button onClick={prevRole} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 z-20 text-zinc-400 hover:text-zinc-600">
+        <ChevronLeft size={24} />
+      </button>
+      <button onClick={nextRole} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 z-20 text-zinc-400 hover:text-zinc-600">
+        <ChevronRight size={24} />
+      </button>
+
+      {/* Center Blob Container */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10 w-full h-full" onClick={() => handleSelect(activeRole)}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeRole.id}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className="flex flex-col items-center justify-center cursor-pointer"
+          >
+            {/* Blob */}
+            <div 
+              className="relative w-36 h-36 rounded-[40%] flex items-center justify-center shadow-lg transition-all"
               style={{ 
-                background: isSelected ? role.gradient : 'rgba(255,255,255,0.7)',
-                color: isSelected && !isWhite ? 'white' : '#27272a',
+                background: activeRole.gradient,
+                borderRadius: '45% 55% 40% 60% / 55% 45% 60% 40%',
+                border: isWhite ? '1px solid rgba(0,0,0,0.05)' : 'none'
               }}
             >
-              {/* iOS 风格的毛玻璃光晕背景 */}
-              {!isSelected && (
-                <div 
-                  className="absolute -right-12 -top-12 w-40 h-40 rounded-full opacity-30 blur-3xl mix-blend-multiply"
-                  style={{ background: role.gradient }}
-                />
-              )}
+              {/* Highlight */}
+              <div className="absolute top-3 left-5 w-12 h-8 bg-white/40 rounded-full blur-[5px] transform -rotate-12 mix-blend-overlay" />
               
-              <div className="relative z-10">
-                <div className="flex items-center gap-4 mb-3">
-                  <div 
-                    className={`w-12 h-12 rounded-full shadow-inner flex items-center justify-center ${isWhite && !isSelected ? 'border border-zinc-100' : ''}`}
-                    style={{ background: role.gradient }}
-                  >
-                    {/* 小的高光点 */}
-                    <div className="w-4 h-4 bg-white/40 rounded-full blur-[2px] -translate-y-2 -translate-x-2" />
-                  </div>
-                  <h2 className="text-[22px] font-semibold tracking-tight">{role.name}</h2>
-                </div>
-                <p className={`text-[15px] leading-relaxed ${isSelected && !isWhite ? 'text-white/90' : 'text-zinc-500'}`}>
-                  {role.description}
-                </p>
+              {/* Face */}
+              <div className={`text-2xl font-semibold opacity-80 ${isWhite ? 'text-zinc-600' : 'text-white'}`}>
+                ( • _ • )
               </div>
-            </motion.div>
-          );
-        })}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Name */}
+      <div className="absolute bottom-[50px] w-full text-center z-20 pointer-events-none">
+        <h2 className="text-[14px] font-medium tracking-tight text-zinc-700">
+          {activeRole.name}
+        </h2>
       </div>
     </div>
   );

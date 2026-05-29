@@ -38,19 +38,34 @@ export const useNarrative = () => {
 
   // 2. 处理 Tab 切换：进入 guide 启动叙事，离开则取消
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
     if (activeTab === 'guide') {
       if (appPhase !== 'narrative') {
         setAppPhase('narrative');
-        setNarrativeStep(1);
+        setNarrativeStep(0); // 先显示“准备中”
         setNarrativePressCount(0);
         sessionStartRef.current = Date.now();
         isSessionActiveRef.current = true;
+        
+        // 延迟一小段时间后进入正式的第一步
+        timeoutId = setTimeout(() => {
+          if (useAppStore.getState().activeTab === 'guide') {
+            setNarrativeStep(1);
+          }
+        }, 1500);
       }
     } else if (activeTab === 'monitor') {
       if (appPhase === 'narrative') {
         if (isSessionActiveRef.current) finishSession(false);
+        setNarrativeStep(0);
+        setAppPhase('idle');
+        setMindfulnessState('idle');
+        clearBehaviorHistory();
       }
     }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [activeTab]);
 
   // 3. 叙事阶段：监听行为 (按一下、按三下)
@@ -91,13 +106,14 @@ export const useNarrative = () => {
 
     if (narrativeStep === 4) {
       if (currentPressure === 0) {
-        // 松开后稍微延迟进入结束状态，显得自然
+        // 松开后稍微延迟进入结束状态，显得自然，增加延迟以等待 step4 的音频播放完毕
         const t = setTimeout(() => {
           setNarrativeStep(5);
+          // 给予足够的时间让最后一段音频（step5）播放完毕，不自动跳转回 monitor
           setTimeout(() => {
             finishSession(true);
-          }, 2500);
-        }, 500);
+          }, 4000);
+        }, 2500); // 增加这里的延迟，确保第四步的文字能和语音同步停留足够长的时间
         return () => clearTimeout(t);
       }
     }
@@ -120,11 +136,7 @@ export const useNarrative = () => {
     });
     
     isSessionActiveRef.current = false;
-    setNarrativeStep(0);
-    setAppPhase('idle');
-    setMindfulnessState('idle');
-    setActiveTab('monitor'); // 完成后切回监测
-    clearBehaviorHistory();
+    // 保持当前的 UI 状态，不在这里重置，以便用户能一直看到“呼吸完成”
   };
 
   const cancelSession = () => {
@@ -132,6 +144,20 @@ export const useNarrative = () => {
       finishSession(false);
     }
   };
+
+  // 组件卸载时（离开页面时）重置状态
+  useEffect(() => {
+    return () => {
+      const state = useAppStore.getState();
+      if (isSessionActiveRef.current) {
+        isSessionActiveRef.current = false;
+      }
+      state.setNarrativeStep(0);
+      state.setAppPhase('idle');
+      state.setMindfulnessState('idle');
+      state.clearBehaviorHistory();
+    };
+  }, []);
 
   return { cancelSession };
 };

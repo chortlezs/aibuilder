@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type DeviceStatus = 'disconnected' | 'connecting' | 'connected';
 // 更新为硬件输出的三个数值对应的行为
 export type BehaviorType = 'idle' | 'light_press' | 'normal_press' | 'hard_press';
 export type MindfulnessState = 'positive' | 'negative' | 'transforming' | 'idle';
@@ -28,10 +27,6 @@ export interface SessionRecord {
 }
 
 interface AppState {
-  // Device state
-  deviceStatus: DeviceStatus;
-  setDeviceStatus: (status: DeviceStatus) => void;
-
   // Tabs & Mode
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
@@ -72,9 +67,6 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       // Initial state
-      deviceStatus: 'disconnected',
-      setDeviceStatus: (status) => set({ deviceStatus: status }),
-
       activeTab: 'monitor',
       setActiveTab: (tab) => set({ activeTab: tab }),
 

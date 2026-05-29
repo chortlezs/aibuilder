@@ -1,5 +1,4 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Home, Users, BarChart2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -11,43 +10,38 @@ export const Layout = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', icon: Home, label: '主页' },
-    { path: '/roles', icon: Users, label: '角色' },
-    { path: '/report', icon: BarChart2, label: '报告' },
+    { path: '/roles' },
+    { path: '/' },
+    { path: '/report' },
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-[#FAFAFA] text-zinc-800 font-sans overflow-hidden">
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20">
-        <Outlet />
-      </main>
+    <div className="flex flex-col h-screen w-screen bg-zinc-900 items-center justify-center font-sans overflow-hidden">
+      {/* Simulate the round screen */}
+      <div className="relative w-[320px] h-[320px] rounded-full bg-white shadow-2xl overflow-hidden ring-[12px] ring-zinc-800 flex flex-col">
+        
+        {/* Main Content */}
+        <main className="flex-1 overflow-hidden relative">
+          <Outlet />
+        </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 w-full h-20 bg-white/80 backdrop-blur-md border-t border-zinc-100 flex items-center justify-around px-6 z-50">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                "flex flex-col items-center gap-1.5 transition-colors duration-300",
-                isActive ? "text-[#A1C9F1]" : "text-zinc-400 hover:text-zinc-600"
-              )}
-            >
-              <div className={cn(
-                "p-2 rounded-full transition-all duration-300",
-                isActive ? "bg-[#A1C9F1]/10" : "bg-transparent"
-              )}>
-                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-              </div>
-              <span className="text-[10px] font-medium">{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+        {/* Minimal Bottom Pagination Dots */}
+        <nav className="absolute bottom-4 w-full flex items-center justify-center gap-2 z-50">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "rounded-full transition-all duration-300",
+                  isActive ? "w-2 h-2 bg-zinc-500" : "w-1.5 h-1.5 bg-zinc-300 hover:bg-zinc-400"
+                )}
+              />
+            );
+          })}
+        </nav>
+      </div>
     </div>
   );
 };
